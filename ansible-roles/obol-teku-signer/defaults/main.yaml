@@ -1,0 +1,32 @@
+teku_signer_user: teku_signer
+teku_signer_datadir: /data/teku_signer/
+teku_signer_announced_ip: "{{ ansible_host }}"
+
+teku_signer_cleanup: false # when set to "true" it will remove the container
+
+teku_signer_container_name: teku-signer
+teku_signer_container_image: consensys/teku:24.8.0
+
+teku_signer_container_command:
+    - validator-client
+    - --beacon-node-api-endpoint=http://obol-charon:3600
+    - --config-file=/opt/charon/teku/teku-config.yaml
+
+teku_signer_container_args:
+    - --validators-builder-registration-default-enabled=true
+    - --validators-proposer-config=http://obol-charon:3600/teku_proposer_config
+    - --validators-proposer-blinded-blocks-enabled=true
+
+teku_signer_container_ports: []
+
+teku_signer_container_volumes:
+    # - .charon/cluster/validator_keys:/opt/charon/validator_keys
+    - "{{ teku_signer_datadir }}:/opt/charon/teku"
+
+teku_signer_container_security_opts: []
+teku_signer_container_stop_timeout: "300"
+teku_signer_container_networks:
+    - name: shared
+
+# Default image pull policy
+teku_signer_container_pull: false

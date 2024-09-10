@@ -1,0 +1,31 @@
+- name: Add teku-signer user
+  ansible.builtin.user:
+    name: "{{ teku_signer_user }}"
+  register: teku_signer_user_meta
+
+- name: Create data dir
+  ansible.builtin.file:
+    path: "{{ teku_signer_datadir }}"
+    state: directory
+    mode: "0750"
+    owner: "{{ teku_signer_user }}"
+    group: "{{ teku_signer_user }}"
+
+- name: Set data folder permissions
+  ansible.builtin.command: "chown -R {{ teku_signer_user }}:{{ teku_signer_user }} {{ teku_signer_datadir }}" # noqa no-free-form
+  changed_when: false
+
+- name: Run teku-signer container
+  community.docker.docker_container:
+    name: "{{ teku_signer_container_name }}"
+    image: "{{ teku_signer_container_image }}"
+    state: started
+    restart_policy: always
+    stop_timeout: "{{ teku_signer_container_stop_timeout }}"
+    ports: "{{ teku_signer_container_ports }}"
+    volumes: "{{ teku_signer_container_volumes }}"
+    command: "{{ teku_signer_container_command + teku_signer_container_args }}"
+    networks: "{{ teku_signer_container_networks }}"
+    user: "{{ teku_signer_user_meta.uid }}"
+    pull: "{{ teku_signer_container_pull | bool }}"
+    security_opts: "{{ teku_signer_container_security_opts }}"

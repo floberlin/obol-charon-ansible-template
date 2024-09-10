@@ -1,0 +1,7 @@
+- name: Remove teku-signer containers
+  community.docker.docker_container:
+    name: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ teku_signer_container_name }}"
+    - "{{ teku_signer_container_name }}-init"

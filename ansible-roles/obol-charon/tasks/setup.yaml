@@ -1,0 +1,36 @@
+- name: Add charon user
+  ansible.builtin.user:
+    name: "{{ charon_user }}"
+  register: charon_user_meta
+
+- name: Create charon data dir
+  ansible.builtin.file:
+    path: "{{ charon_datadir }}"
+    state: directory
+    mode: "0750"
+    owner: "{{ charon_user }}"
+    group: "{{ charon_user }}"
+
+- name: Set charon permissions
+  ansible.builtin.command: "chown -R {{ charon_user }}:{{ charon_user }} {{ charon_datadir }}" # noqa no-free-form
+  changed_when: false
+
+- name: Set charon_container_env_dict fact
+  ansible.builtin.set_fact: # envs must be dict, not a list
+    charon_container_env_dict: "{{ charon_container_env | combine(charon_general_envs) }}"
+
+- name: Run charon container
+  community.docker.docker_container:
+    command: "{{ charon_container_command + charon_container_args }}"
+    name: "{{ charon_container_name }}"
+    env: "{{ charon_container_env_dict }}"
+    image: "{{ charon_container_image }}"
+    state: started
+    restart_policy: always
+    stop_timeout: "{{ charon_container_stop_timeout }}"
+    ports: "{{ charon_container_ports }}"
+    volumes: "{{ charon_container_volumes }}"
+    networks: "{{ charon_container_networks }}"
+    user: "{{ charon_user_meta.uid }}"
+    pull: "{{ charon_container_pull | bool }}"
+    security_opts: "{{ charon_container_security_opts }}"

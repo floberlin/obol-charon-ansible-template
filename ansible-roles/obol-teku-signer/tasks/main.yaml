@@ -1,0 +1,7 @@
+- name: Setup teku-signer
+  ansible.builtin.import_tasks: setup.yaml
+  when: not teku_signer_cleanup
+
+- name: Cleanup teku-signer
+  ansible.builtin.import_tasks: cleanup.yaml
+  when: teku_signer_cleanup
